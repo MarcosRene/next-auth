@@ -3,7 +3,7 @@
 import { ReactNode, createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner'
-import { setCookie, parseCookies } from 'nookies'
+import { setCookie, parseCookies, destroyCookie } from 'nookies'
 
 import { api } from '@/services/api';
 
@@ -36,14 +36,14 @@ const initialUserState: User = {
   roles: []
 }
 
-enum COOKIES_KEY {
+export enum COOKIES_KEY {
   token = '@token',
   refreshToken = '@refreshToken'
 } 
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User>(initialUserState)
-  const router =  useRouter()
+  const router = useRouter()
   
   const isAuthenticated = !!user;
 
@@ -51,11 +51,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const { 'nextauth@token': token } = parseCookies()
 
     if (token) {
-      api.get('/me').then((response) => {
-        const { email, permissions, roles } = response.data;
+      api.get('/me')
+        .then((response) => {
+          const { email, permissions, roles } = response.data;
 
-        setUser({ email, permissions, roles })
-      })
+          setUser({ email, permissions, roles })
+        })
+        .catch(() => {
+          destroyCookie(undefined, `nextauth${COOKIES_KEY.token}`);
+          destroyCookie(undefined, `nextauth${COOKIES_KEY.refreshToken}`);
+
+          router.push('/')
+        })
     }
   }, [])
 
