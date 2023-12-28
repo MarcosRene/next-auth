@@ -1,11 +1,19 @@
 'use client'
-import { FormEvent } from "react";
+import { ChangeEvent, FormEvent, useState } from "react";
+
+import { useAuth } from '@/contexts/auth'
 
 export default function SignIn() {
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  const {  signIn } = useAuth()
 
-    console.log('aqui')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const payload = { email, password }
+
+    await signIn(payload);
   }
 
   return (
@@ -15,12 +23,16 @@ export default function SignIn() {
           type="email" 
           name="email" 
           placeholder="E-mail" 
+          value={email}
+          onChange={(event: ChangeEvent<HTMLInputElement>) => setEmail(event.target.value)}
           className="mb-4 px-3 py-3 h-10 bg-[#fafafa] text-zinc-800 rounded text-sm"
         />
         <input 
           type="password" 
           name="password" 
-          placeholder="Password" 
+          placeholder="Password"
+          value={password}
+          onChange={(event: ChangeEvent<HTMLInputElement>) => setPassword(event.target.value)} 
           className="mb-4 px-3 py-3 h-10 bg-[#fafafa] text-zinc-800 rounded text-sm"
         />
 
